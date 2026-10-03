@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cryptocore"
+version = "0.1.0"
+description = "CLI-инструмент для шифрования файлов с помощью AES-128 в режиме ECB"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "pycryptodome>=3.20,<4",
+]
+
+[project.scripts]
+cryptocore = "cryptocore.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
