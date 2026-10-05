@@ -4,12 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cryptocore"
-version = "0.1.0"
-description = "CLI-инструмент для шифрования файлов с помощью AES-128 в режиме ECB"
+version = "0.2.0"
+description = "Command line file encryption with AES-128"
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
-    "pycryptodome>=3.20,<4",
+    "pycryptodome>=3.20,<4"
 ]
 
 [project.scripts]

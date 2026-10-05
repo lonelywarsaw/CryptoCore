@@ -1,1 +1,1 @@
-"""CryptoCore: шифрование файлов с помощью AES-128-ECB."""
+"""CryptoCore"""

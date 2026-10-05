@@ -1,27 +1,51 @@
-"""ECB с ручной обработкой блоков и дополнением PKCS#7.
-
-Примитив AES предоставляется библиотекой pycryptodome.
-"""
+"""Режим ECB."""
 
 from Crypto.Cipher import AES
+
 
 BLOCK_SIZE = 16
 
 
-def _validate_key(key: bytes) -> None:
+def validate_key(key: bytes) -> None:
     if len(key) != BLOCK_SIZE:
-        raise ValueError("Ключ AES-128 должен содержать ровно 16 байт.")
+        raise ValueError(
+            "Ключ AES-128 должен содержать ровно 16 байт."
+        )
+
+
+def add_padding(data: bytes) -> bytes:
+    padding_size = BLOCK_SIZE - len(data) % BLOCK_SIZE
+    return data + bytes([padding_size]) * padding_size
+
+
+def remove_padding(data: bytes) -> bytes:
+    if not data or len(data) % BLOCK_SIZE != 0:
+        raise ValueError(
+            "Данные должны иметь длину, кратную 16 байтам."
+        )
+
+    padding_size = data[-1]
+
+    if not 1 <= padding_size <= BLOCK_SIZE:
+        raise ValueError(
+            "Некорректное дополнение PKCS#7."
+        )
+
+    expected_padding = bytes([padding_size]) * padding_size
+
+    if data[-padding_size:] != expected_padding:
+        raise ValueError(
+            "Некорректное дополнение PKCS#7."
+        )
+
+    return data[:-padding_size]
 
 
 def encrypt(data: bytes, key: bytes) -> bytes:
-    """Дополнить данные по PKCS#7 и зашифровать каждый блок AES."""
-
-    _validate_key(key)
-
-    padding_length = BLOCK_SIZE - len(data) % BLOCK_SIZE
-    padded_data = data + bytes([padding_length]) * padding_length
+    validate_key(key)
 
     cipher = AES.new(key, AES.MODE_ECB)
+    padded_data = add_padding(data)
     result = bytearray()
 
     for offset in range(0, len(padded_data), BLOCK_SIZE):
@@ -32,14 +56,11 @@ def encrypt(data: bytes, key: bytes) -> bytes:
 
 
 def decrypt(data: bytes, key: bytes) -> bytes:
-    """Расшифровать блоки AES, проверить и удалить дополнение PKCS#7."""
-
-    _validate_key(key)
+    validate_key(key)
 
     if not data or len(data) % BLOCK_SIZE != 0:
         raise ValueError(
-            "Шифртекст должен содержать хотя бы один блок "
-            "и иметь длину, кратную 16 байтам."
+            "Шифртекст ECB должен иметь длину, кратную 16 байтам."
         )
 
     cipher = AES.new(key, AES.MODE_ECB)
@@ -49,12 +70,4 @@ def decrypt(data: bytes, key: bytes) -> bytes:
         block = data[offset:offset + BLOCK_SIZE]
         result.extend(cipher.decrypt(block))
 
-    padding_length = result[-1]
-
-    if not 1 <= padding_length <= BLOCK_SIZE:
-        raise ValueError("Некорректное дополнение PKCS#7.")
-
-    if result[-padding_length:] != bytes([padding_length]) * padding_length:
-        raise ValueError("Некорректное дополнение PKCS#7.")
-
-    return bytes(result[:-padding_length])
+    return remove_padding(bytes(result))
