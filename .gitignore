@@ -13,3 +13,4 @@ dist/
 *.dec
 openssl-test-*.bin
 openssl-test-*.txt
+nist_test_data.bin

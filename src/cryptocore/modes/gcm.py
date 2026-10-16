@@ -1,9 +1,8 @@
-"""Режим GCM."""
-
-import os
+"""Режим GCM"""
 
 from Crypto.Cipher import AES
 
+from cryptocore.csprng import generate_random_bytes
 from cryptocore.modes.ecb import validate_key
 
 
@@ -15,7 +14,7 @@ MAGIC = b"CCG1"
 def encrypt(data: bytes, key: bytes) -> bytes:
     validate_key(key)
 
-    nonce = os.urandom(NONCE_SIZE)
+    nonce = generate_random_bytes(NONCE_SIZE)
 
     cipher = AES.new(
         key,

@@ -1,4 +1,4 @@
-"""Командная строка CryptoCore."""
+"""Командная строка CryptoCore"""
 
 import argparse
 import os
@@ -7,6 +7,8 @@ import sys
 from typing import Optional
 from typing import Tuple
 
+from cryptocore.csprng import generate_random_bytes
+from cryptocore.csprng import RandomSourceError
 from cryptocore.file_io import read_file
 from cryptocore.file_io import write_file
 from cryptocore.modes.cbc import decrypt as cbc_decrypt
@@ -23,11 +25,11 @@ from cryptocore.modes.streaming import ofb_crypt
 
 BLOCK_SIZE = 16
 MODES = ["ecb", "cbc", "cfb", "ofb", "ctr", "gcm"]
-KEY_PATTERN = re.compile(r"[0-9a-fA-F]{32}\Z")
+HEX_PATTERN = re.compile(r"[0-9a-fA-F]{32}\Z")
 
 
 def parse_hex_value(value: str, name: str) -> bytes:
-    if KEY_PATTERN.fullmatch(value) is None:
+    if HEX_PATTERN.fullmatch(value) is None:
         raise argparse.ArgumentTypeError(
             f"{name} должен содержать 32 шестнадцатеричных символа."
         )
@@ -54,7 +56,6 @@ def create_parser() -> argparse.ArgumentParser:
         required=True,
         choices=["aes"],
     )
-
     parser.add_argument(
         "--mode",
         required=True,
@@ -62,40 +63,35 @@ def create_parser() -> argparse.ArgumentParser:
     )
 
     operation = parser.add_mutually_exclusive_group(required=True)
-
-    operation.add_argument(
-        "--encrypt",
-        action="store_true",
-    )
-
-    operation.add_argument(
-        "--decrypt",
-        action="store_true",
-    )
+    operation.add_argument("--encrypt", action="store_true")
+    operation.add_argument("--decrypt", action="store_true")
 
     parser.add_argument(
         "--key",
-        required=True,
         type=parse_key,
+        help="Ключ из 32 hex-символов. Обязателен при расшифровании.",
     )
-
-    parser.add_argument(
-        "--iv",
-        type=parse_iv,
-    )
-
-    parser.add_argument(
-        "--input",
-        required=True,
-        metavar="INPUT_FILE",
-    )
-
-    parser.add_argument(
-        "--output",
-        metavar="OUTPUT_FILE",
-    )
+    parser.add_argument("--iv", type=parse_iv)
+    parser.add_argument("--input", required=True, metavar="INPUT_FILE")
+    parser.add_argument("--output", metavar="OUTPUT_FILE")
 
     return parser
+
+
+def is_weak_key(key: bytes) -> bool:
+    if len(set(key)) == 1:
+        return True
+
+    ascending = all(
+        key[index] == (key[index - 1] + 1) % 256
+        for index in range(1, len(key))
+    )
+    descending = all(
+        key[index] == (key[index - 1] - 1) % 256
+        for index in range(1, len(key))
+    )
+
+    return ascending or descending
 
 
 def output_path_for(input_path: str, encrypting: bool) -> str:
@@ -103,6 +99,22 @@ def output_path_for(input_path: str, encrypting: bool) -> str:
         return input_path + ".enc"
 
     return input_path + ".dec"
+
+
+def check_paths(input_path: str, output_path: str) -> None:
+    source = os.path.normcase(os.path.realpath(input_path))
+    destination = os.path.normcase(os.path.realpath(output_path))
+
+    if source == destination:
+        raise ValueError(
+            "Входной и выходной файлы должны различаться."
+        )
+
+    if os.path.exists(input_path) and os.path.exists(output_path):
+        if os.path.samefile(input_path, output_path):
+            raise ValueError(
+                "Входной и выходной файлы должны различаться."
+            )
 
 
 def get_iv_and_ciphertext(
@@ -120,18 +132,14 @@ def get_iv_and_ciphertext(
     return data[:BLOCK_SIZE], data[BLOCK_SIZE:]
 
 
-def encrypt_data(
-    mode: str,
-    data: bytes,
-    key: bytes,
-) -> bytes:
+def encrypt_data(mode: str, data: bytes, key: bytes) -> bytes:
     if mode == "ecb":
         return ecb_encrypt(data, key)
 
     if mode == "gcm":
         return gcm_encrypt(data, key)
 
-    iv = os.urandom(BLOCK_SIZE)
+    iv = generate_random_bytes(BLOCK_SIZE)
 
     if mode == "cbc":
         ciphertext = cbc_encrypt(data, key, iv)
@@ -154,25 +162,12 @@ def decrypt_data(
     supplied_iv: Optional[bytes],
 ) -> bytes:
     if mode == "ecb":
-        if supplied_iv is not None:
-            raise ValueError(
-                "Параметр --iv нельзя использовать с ECB."
-            )
-
         return ecb_decrypt(data, key)
 
     if mode == "gcm":
-        if supplied_iv is not None:
-            raise ValueError(
-                "Параметр --iv нельзя использовать с GCM."
-            )
-
         return gcm_decrypt(data, key)
 
-    iv, ciphertext = get_iv_and_ciphertext(
-        data,
-        supplied_iv,
-    )
+    iv, ciphertext = get_iv_and_ciphertext(data, supplied_iv)
 
     if mode == "cbc":
         return cbc_decrypt(ciphertext, key, iv)
@@ -193,6 +188,11 @@ def main() -> int:
     parser = create_parser()
     args = parser.parse_args()
 
+    if args.decrypt and args.key is None:
+        parser.error(
+            "Для расшифрования необходимо указать --key."
+        )
+
     if args.encrypt and args.iv is not None:
         parser.error(
             "Параметр --iv нельзя указывать при шифровании."
@@ -206,42 +206,44 @@ def main() -> int:
     output_path = args.output
 
     if output_path is None:
-        output_path = output_path_for(
-            args.input,
-            args.encrypt,
-        )
+        output_path = output_path_for(args.input, args.encrypt)
 
     try:
+        check_paths(args.input, output_path)
         source_data = read_file(args.input)
 
-        if args.encrypt:
-            result = encrypt_data(
-                args.mode,
-                source_data,
-                args.key,
+        key = args.key
+
+        if key is None:
+            key = generate_random_bytes(BLOCK_SIZE)
+            print(f"Generated random key: {key.hex()}", flush=True)
+        elif is_weak_key(key):
+            print(
+                "Предупреждение: --key содержит простой шаблон. "
+                "Лучше использовать случайный ключ.",
+                file=sys.stderr,
             )
+
+        if args.encrypt:
+            result = encrypt_data(args.mode, source_data, key)
         else:
             result = decrypt_data(
                 args.mode,
                 source_data,
-                args.key,
+                key,
                 args.iv,
             )
 
         write_file(output_path, result)
 
-    except OSError as error:
-        print(
-            f"Ошибка файловой операции: {error}",
-            file=sys.stderr,
-        )
+    except RandomSourceError as error:
+        print(f"Ошибка генерации случайных данных: {error}", file=sys.stderr)
         return 1
-
+    except OSError as error:
+        print(f"Ошибка файловой операции: {error}", file=sys.stderr)
+        return 1
     except ValueError as error:
-        print(
-            f"Ошибка: {error}",
-            file=sys.stderr,
-        )
+        print(f"Ошибка: {error}", file=sys.stderr)
         return 1
 
     return 0
