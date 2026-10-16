@@ -13,6 +13,20 @@
 
 Программа работает в Windows, Linux и macOS.
 
+## Содержание
+
+- [Установка в Windows](#установка-в-windows)
+- [Установка в Linux и macOS](#установка-в-linux-и-macos)
+- [Формат команды](#формат-команды)
+- [Режим ECB](#режим-ecb)
+- [Режим CBC](#режим-cbc)
+- [Режим CFB](#режим-cfb)
+- [Режим OFB](#режим-ofb)
+- [Режим CTR](#режим-ctr)
+- [Проверка полного цикла](#проверка-полного-цикла)
+- [Запуск тестов](#запуск-тестов)
+- [Interoperability Tests](#interoperability-tests)
+
 ## Установка в Windows
 
 Откройте PowerShell в папке проекта:
@@ -589,3 +603,10 @@ $a = [System.IO.File]::ReadAllBytes("plain.bin")
 $b = [System.IO.File]::ReadAllBytes("cryptocore-ctr-dec.bin")
 [System.Linq.Enumerable]::SequenceEqual($a, $b)
 ```
+
+## Interoperability Tests
+
+Для проверки совместимости с OpenSSL используется скрипт:
+
+```powershell
+.\scripts\openssl_tests.ps1

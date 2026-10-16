@@ -11,3 +11,5 @@ dist/
 *.enc
 *.bin
 *.dec
+openssl-test-*.bin
+openssl-test-*.txt
