@@ -184,7 +184,7 @@ def decrypt_data(
     raise ValueError(f"Неподдерживаемый режим: {mode}")
 
 
-def main() -> int:
+def encryption_main() -> int:
     parser = create_parser()
     args = parser.parse_args()
 
@@ -247,6 +247,15 @@ def main() -> int:
         return 1
 
     return 0
+
+
+def main() -> int:
+    if len(sys.argv) > 1 and sys.argv[1] == "dgst":
+        from cryptocore.digest_cli import main as digest_main
+
+        return digest_main(sys.argv[2:])
+
+    return encryption_main()
 
 
 if __name__ == "__main__":

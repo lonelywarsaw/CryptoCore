@@ -29,6 +29,8 @@
 - [Генерация ключа](#генерация-ключа)
 - [Источник случайности](#источник-случайности)
 - [NIST STS](#nist-sts)
+- [Хеширование](#хеширование)
+- [Проверка хеш-функций](#проверка-хеш-функций)
 
 ## Установка в Windows
 
@@ -818,3 +820,137 @@ SHA-256 выборки:
 Массовых статистических отклонений не обнаружено. Единичный отказ сохранён в отчёте. Результаты статистических тестов не являются доказательством криптографической стойкости генератора.
 
 Полный отчёт находится в `reports/nist/finalAnalysisReport.txt`.
+
+## Хеширование
+
+Команда `dgst` вычисляет хеш файла. Поддерживаются SHA-256 и SHA3-256 с результатом длиной 256 бит.
+
+```sh
+cryptocore dgst --algorithm sha256 --input document.pdf
+```
+
+```sh
+cryptocore dgst --algorithm sha3-256 --input document.pdf
+```
+
+Результат выводится в нижнем регистре. Между хешем и путём находятся два пробела.
+
+```text
+HASH_VALUE  INPUT_FILE_PATH
+```
+
+Для записи результата в файл используется `--output`. В этом случае stdout остаётся пустым.
+
+```sh
+cryptocore dgst --algorithm sha256 --input document.pdf --output document.sha256
+```
+
+Для чтения из stdin укажите `--input -`.
+
+Linux и macOS:
+
+```sh
+printf 'abc' | cryptocore dgst --algorithm sha256 --input -
+```
+
+Подкоманда `dgst` не принимает параметры шифрования. Ключ для вычисления хеша не требуется.
+
+SHA-256 реализован по FIPS 180-4 и обрабатывает блоки по 64 байта. SHA3-256 реализован по FIPS 202 на основе Keccak-f[1600] с размером поглощаемого блока 136 байт.
+
+Файлы читаются в бинарном режиме порциями по 8192 байта. Потребление памяти при чтении не растёт вместе с размером файла.
+
+Оба алгоритма рассчитаны на 128-битную стойкость к поиску коллизий и 256-битную стойкость к поиску прообраза в стандартной модели оценки.
+
+Обычный хеш не подтверждает подлинность файла. Проверка целостности имеет смысл, если эталонный хеш получен из доверенного источника. Если злоумышленник может заменить и файл, и его хеш, такая проверка не защитит от подмены.
+
+## Проверка хеш-функций
+
+### Автоматические тесты
+
+```sh
+python -m unittest discover -s tests -v
+```
+
+Проверяются известные ответы, пустые файлы и длины около границ блоков. Дополнительно проверяются последовательные вызовы update, однобитовое изменение сообщения и работа CLI.
+
+### Векторы NIST
+
+Скачайте byte-oriented наборы SHA-256 и SHA3-256 с сайта NIST.
+
+https://csrc.nist.gov/projects/cryptographic-algorithm-validation-program/secure-hashing
+
+https://csrc.nist.gov/projects/cryptographic-algorithm-validation-program/sha-3
+
+Для SHA-256 нужны файлы `SHA256ShortMsg.rsp` и `SHA256LongMsg.rsp`. Для SHA3-256 нужны `SHA3_256ShortMsg.rsp` и `SHA3_256LongMsg.rsp`.
+
+Распакуйте наборы в `tests/vectors/sha256` и `tests/vectors/sha3`.
+
+```sh
+python scripts/check_hash_vectors.py --algorithm sha256 --directory tests/vectors/sha256
+python scripts/check_hash_vectors.py --algorithm sha3-256 --directory tests/vectors/sha3
+```
+
+Скрипт завершится с ненулевым кодом при несовпадении результата или отсутствии файлов с векторами.
+
+### Совместимость с системными командами
+
+В Linux SHA-256 можно проверить через sha256sum:
+
+```sh
+cryptocore dgst --algorithm sha256 --input document.pdf > cryptocore.sha256
+sha256sum document.pdf > system.sha256
+diff cryptocore.sha256 system.sha256
+```
+
+Для SHA3-256 при установленной sha3sum:
+
+```sh
+cryptocore dgst --algorithm sha3-256 --input document.pdf
+sha3sum -a 256 document.pdf
+```
+
+Значения хешей должны совпасть.
+
+Для автоматического сравнения SHA-256 с sha256sum:
+
+```sh
+python scripts/check_hash_files.py --algorithm sha256 --reference sha256sum --sizes-mib 1 10
+```
+
+Для SHA3-256 с sha3sum:
+
+```sh
+python scripts/check_hash_files.py --algorithm sha3-256 --reference sha3sum --sizes-mib 1 10
+```
+
+В Windows оба алгоритма можно сравнить с OpenSSL:
+
+```powershell
+python scripts/check_hash_files.py --reference openssl --sizes-mib 1 10
+```
+
+В столбце `match` ожидается `true`.
+
+### Файлы больше 1 ГБ
+
+Перед запуском обеспечьте свободное место для временного файла размером 1025 МиБ.
+
+```sh
+python scripts/check_hash_files.py --sizes-mib 1025
+```
+
+Скрипт проверяет оба алгоритма, сравнивает результаты с OpenSSL и удаляет временный файл после завершения.
+
+Чистая реализация на Python значительно медленнее OpenSSL. Проверка большого файла может занять много часов.
+
+### Производительность
+
+Для измерения на нескольких размерах выполните:
+
+```sh
+python scripts/check_hash_files.py --sizes-mib 1 10 100
+```
+
+Скрипт выводит время вычисления хеша собственной реализацией и системной командой. Создание тестового файла в эти измерения не включается.
+
+Это последовательное измерение с одним запуском для каждой комбинации алгоритма и размера. На время влияют загрузка системы и файловый кеш.
