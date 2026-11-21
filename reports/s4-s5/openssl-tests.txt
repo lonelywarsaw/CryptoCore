@@ -1,0 +1,66 @@
+﻿**********************
+Начало записи сценария Windows PowerShell
+Время начала: 20261120143651
+Имя пользователя: SUI\kanev
+Запуск от имени пользователя: SUI\kanev
+Имя конфигурации: 
+Компьютер: SUI (Microsoft Windows NT 10.0.26300.0)
+Ведущее приложение: C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -ExecutionPolicy Bypass -Command Import-Module 'c:\Users\kanev\.vscode\extensions\ms-vscode.powershell-2025.4.0\modules\PowerShellEditorServices\PowerShellEditorServices.psd1'; Start-EditorServices -HostName 'Visual Studio Code Host' -HostProfileId 'Microsoft.VSCode' -HostVersion '2025.4.0' -BundledModulesPath 'c:\Users\kanev\.vscode\extensions\ms-vscode.powershell-2025.4.0\modules' -EnableConsoleRepl -StartupBanner "PowerShell Extension v2025.4.0
+Copyright (c) Microsoft Corporation.
+
+https://aka.ms/vscode-powershell
+Type 'help' to get help.
+" -LogLevel 'Warning' -LogPath 'c:\Users\kanev\AppData\Roaming\Code\logs\20261120T143038\window1\exthost\ms-vscode.powershell' -SessionDetailsPath 'c:\Users\kanev\AppData\Roaming\Code\User\globalStorage\ms-vscode.powershell\sessions\PSES-VSCode-15032-416135.json' -FeatureFlags @() 
+ИД процесса: 11216
+PSVersion: 5.1.26100.9818
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.9818
+BuildVersion: 10.0.26100.9818
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Транскрибирование запущено, выходной файл reports/s4-s5/openssl-tests.txt
+]633;D;0]633;A]633;P;Cwd=D:\x5cCryptoCorePS D:\CryptoCore> ]633;B
+(.venv) $global:__psEditorServices_userInput = $args[0]
+(.venv) $global:__psEditorServices_userInput = ""
+(.venv) .\scripts\openssl_tests.ps1
+OpenSSL 4.0.3 29 Sep 2026 (Library: OpenSSL 4.0.3 29 Sep 2026)
+
+
+PASS ECB CryptoCore и OpenSSL
+
+
+PASS cbc CryptoCore -> OpenSSL
+
+
+PASS cbc OpenSSL -> CryptoCore
+
+
+PASS cfb CryptoCore -> OpenSSL
+
+
+PASS cfb OpenSSL -> CryptoCore
+
+
+PASS ofb CryptoCore -> OpenSSL
+
+
+PASS ofb OpenSSL -> CryptoCore
+
+
+PASS ctr CryptoCore -> OpenSSL
+
+
+PASS ctr OpenSSL -> CryptoCore
+
+Все проверки совместимости завершились успешно.
+]633;D;0]633;A]633;P;Cwd=D:\x5cCryptoCorePS D:\CryptoCore> ]633;B
+(.venv) $global:__psEditorServices_userInput = $args[0]
+(.venv) $global:__psEditorServices_userInput = ""
+(.venv) Stop-Transcript
+**********************
+Конец записи протокола Windows PowerShell
+Время окончания: 20261120143658
+**********************

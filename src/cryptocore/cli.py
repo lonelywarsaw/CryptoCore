@@ -250,10 +250,25 @@ def encryption_main() -> int:
 
 
 def main() -> int:
-    if len(sys.argv) > 1 and sys.argv[1] == "dgst":
+    arguments = sys.argv[1:]
+
+    if arguments and arguments[0] == "dgst":
         from cryptocore.digest_cli import main as digest_main
 
-        return digest_main(sys.argv[2:])
+        return digest_main(arguments[1:])
+
+    mode = None
+
+    for position, argument in enumerate(arguments):
+        if argument == "--mode" and position + 1 < len(arguments):
+            mode = arguments[position + 1]
+        elif argument.startswith("--mode="):
+            mode = argument.split("=", 1)[1]
+
+    if mode in ("gcm", "etm"):
+        from cryptocore.aead_cli import main as aead_main
+
+        return aead_main(arguments)
 
     return encryption_main()
 

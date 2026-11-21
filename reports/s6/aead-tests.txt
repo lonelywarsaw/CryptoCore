@@ -1,0 +1,26 @@
+test_generated_key (test_aead.CLITests.test_generated_key) ... ok
+test_invalid_options (test_aead.CLITests.test_invalid_options) ... ok
+test_success_and_wrong_aad (test_aead.CLITests.test_success_and_wrong_aad) ... ok
+test_aad_file (test_aead.FileTests.test_aad_file) ... ok
+test_csprng (test_aead.FileTests.test_csprng) ... ok
+test_distinct_derived_keys (test_aead.FileTests.test_distinct_derived_keys) ... ok
+test_empty_file (test_aead.FileTests.test_empty_file) ... ok
+test_external_nonce (test_aead.FileTests.test_external_nonce) ... ok
+test_round_trip (test_aead.FileTests.test_round_trip) ... ok
+test_same_path (test_aead.FileTests.test_same_path) ... ok
+test_short_files (test_aead.FileTests.test_short_files) ... ok
+test_wrong_aad_preserves_output (test_aead.FileTests.test_wrong_aad_preserves_output) ... ok
+test_wrong_key_and_tamper (test_aead.FileTests.test_wrong_key_and_tamper) ... ok
+test_chunked_aad (test_aead.GCMTests.test_chunked_aad) ... ok
+test_every_bit_tamper (test_aead.GCMTests.test_every_bit_tamper) ... ok
+test_known_answer_with_aad (test_aead.GCMTests.test_known_answer_with_aad) ... ok
+test_known_answers (test_aead.GCMTests.test_known_answers) ... ok
+test_openssl_compatibility (test_aead.GCMTests.test_openssl_compatibility) ... ok
+test_reference_boundaries (test_aead.GCMTests.test_reference_boundaries) ... ok
+test_table_multiplication (test_aead.GCMTests.test_table_multiplication) ... ok
+test_unique_nonces (test_aead.GCMTests.test_unique_nonces) ... ok
+
+----------------------------------------------------------------------
+Ran 21 tests in 4.522s
+
+OK

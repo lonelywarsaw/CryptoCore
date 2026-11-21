@@ -1,0 +1,7 @@
+Memory limit: 128 MiB
+AAD size: 129 MiB
+Running GCM encryption
+Running GCM decryption
+PASS large AAD round-trip and reference
+Running tamper rejection
+PASS large AAD tamper rejection

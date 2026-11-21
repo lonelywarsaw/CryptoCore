@@ -4,7 +4,7 @@ Set-StrictMode -Version Latest
 $root = Split-Path -Parent $PSScriptRoot
 $python = Join-Path $root ".venv\Scripts\python.exe"
 $inputFile = Join-Path $root "openssl-test-plain.bin"
-$key = "000102030405060708090a0b0c0d0e0f"
+$key = "8e73b0f7da0e6452c810f32b809079e5"
 $fixedIv = "aabbccddeeff00112233445566778899"
 
 function Assert-FileEqual {

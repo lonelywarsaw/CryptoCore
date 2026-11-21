@@ -1,0 +1,8 @@
+Memory limit: 128 MiB
+Input size: 257 MiB
+Running hmac
+PASS hmac: bdfa75932b0ce93cadb5524edbac95e510ff30b5809f2744c106a669eb5bb596
+Seconds: 599.026
+Running cmac
+PASS cmac: d39c659757a3df20f813ffcc9deab6b1
+Seconds: 46.947

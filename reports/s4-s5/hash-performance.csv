@@ -1,0 +1,7 @@
+algorithm,bytes,implementation_seconds,reference,reference_seconds,match
+sha256,1048576,4.142442,openssl,0.044830,true
+sha3-256,1048576,5.007149,openssl,0.030162,true
+sha256,10485760,45.583156,openssl,0.036078,true
+sha3-256,10485760,46.751178,openssl,0.058966,true
+sha256,104857600,358.219016,openssl,0.296070,true
+sha3-256,104857600,504.604033,openssl,0.390771,true

@@ -1,0 +1,3 @@
+PASS SHA256ShortMsg.rsp: 65
+PASS SHA256LongMsg.rsp: 64
+PASS total: 129

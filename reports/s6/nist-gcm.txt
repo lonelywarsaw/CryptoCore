@@ -1,0 +1,4 @@
+PASS gcmDecrypt128.rsp: 1125, negative: 590
+PASS gcmEncryptExtIV128.rsp: 1125, negative: 0
+PASS total: 2250
+PASS negative vectors: 590
