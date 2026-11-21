@@ -463,6 +463,68 @@ class CLITests(unittest.TestCase):
                 )
                 self.assertNotEqual(result.returncode, 0)
 
+    def test_default_output_path(self):
+        from cryptocore.cli import output_path_for
+
+        for mode, key in (("gcm", KEY), ("etm", MASTER)):
+            with self.subTest(mode=mode):
+                encrypted = Path(
+                    output_path_for(str(self.source), True)
+                )
+
+                result = subprocess.run(
+                    [
+                        sys.executable,
+                        "-m", "cryptocore.cli",
+                        "--algorithm", "aes",
+                        "--mode", mode,
+                        "--encrypt",
+                        "--key", key.hex(),
+                        "--input", str(self.source),
+                    ],
+                    capture_output=True,
+                    check=False,
+                )
+
+                self.assertEqual(
+                    result.returncode, 0, result.stderr
+                )
+                self.assertTrue(encrypted.is_file())
+
+                decrypted = Path(
+                    output_path_for(str(encrypted), False)
+                )
+
+                # Убираем исходный файл, если стандартное имя
+                # расшифрованного файла совпадает с его именем.
+                if decrypted == self.source:
+                    self.source.unlink()
+
+                result = subprocess.run(
+                    [
+                        sys.executable,
+                        "-m", "cryptocore.cli",
+                        "--algorithm", "aes",
+                        "--mode", mode,
+                        "--decrypt",
+                        "--key", key.hex(),
+                        "--input", str(encrypted),
+                    ],
+                    capture_output=True,
+                    check=False,
+                )
+
+                self.assertEqual(
+                    result.returncode, 0, result.stderr
+                )
+                self.assertEqual(
+                    decrypted.read_bytes(),
+                    b"Secret message",
+                )
+
+                # Восстанавливаем вход для следующего режима.
+                self.source.write_bytes(b"Secret message")
+
 
 if __name__ == "__main__":
     unittest.main()

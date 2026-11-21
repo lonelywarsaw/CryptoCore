@@ -1,3 +1,4 @@
+test_default_output_path (test_aead.CLITests.test_default_output_path) ... ok
 test_generated_key (test_aead.CLITests.test_generated_key) ... ok
 test_invalid_options (test_aead.CLITests.test_invalid_options) ... ok
 test_success_and_wrong_aad (test_aead.CLITests.test_success_and_wrong_aad) ... ok
@@ -21,6 +22,6 @@ test_table_multiplication (test_aead.GCMTests.test_table_multiplication) ... ok
 test_unique_nonces (test_aead.GCMTests.test_unique_nonces) ... ok
 
 ----------------------------------------------------------------------
-Ran 21 tests in 4.522s
+Ran 22 tests in 5.859s
 
 OK

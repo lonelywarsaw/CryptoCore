@@ -75,7 +75,7 @@ def main(arguments=None):
 
     if args.output is None:
         # Сохраняется прежнее правило выбора выходного пути.
-        from cryptocore.file_io import output_path_for
+        from cryptocore.cli import output_path_for
 
         output_path = output_path_for(args.input, args.encrypt)
     else:

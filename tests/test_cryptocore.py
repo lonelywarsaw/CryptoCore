@@ -10,8 +10,8 @@ from cryptocore.modes.cbc import decrypt as cbc_decrypt
 from cryptocore.modes.cbc import encrypt as cbc_encrypt
 from cryptocore.modes.ecb import decrypt as ecb_decrypt
 from cryptocore.modes.ecb import encrypt as ecb_encrypt
-from cryptocore.modes.gcm import decrypt as gcm_decrypt
-from cryptocore.modes.gcm import encrypt as gcm_encrypt
+from cryptocore.aead import AuthenticationError
+from cryptocore.aead.gcm import GCM
 from cryptocore.modes.streaming import cfb_decrypt
 from cryptocore.modes.streaming import cfb_encrypt
 from cryptocore.modes.streaming import ctr_crypt
@@ -104,19 +104,20 @@ class ModeTests(unittest.TestCase):
     def test_gcm_round_trip(self):
         original = bytes(range(100))
 
-        encrypted = gcm_encrypt(original, KEY)
-        restored = gcm_decrypt(encrypted, KEY)
+        encrypted = GCM(KEY).encrypt(original)
+        restored = GCM(KEY).decrypt(encrypted)
 
+        self.assertEqual(len(encrypted), 12 + len(original) + 16)
         self.assertEqual(restored, original)
 
     def test_gcm_rejects_changed_data(self):
         original = b"file contents"
-        encrypted = bytearray(gcm_encrypt(original, KEY))
+        encrypted = bytearray(GCM(KEY).encrypt(original))
 
         encrypted[-1] ^= 1
 
-        with self.assertRaises(ValueError):
-            gcm_decrypt(bytes(encrypted), KEY)
+        with self.assertRaises(AuthenticationError):
+            GCM(KEY).decrypt(bytes(encrypted))
 
 
 class CLITests(unittest.TestCase):

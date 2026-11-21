@@ -15,7 +15,7 @@ from cryptocore.cli import main
 from cryptocore.csprng import generate_random_bytes
 from cryptocore.csprng import RandomSourceError
 from cryptocore.modes.ecb import decrypt as ecb_decrypt
-from cryptocore.modes.gcm import encrypt as gcm_encrypt
+from cryptocore.aead.gcm import GCM
 
 
 KEY_HEX = "d4c3b2a1908f7e6d5c4b3a291807f6e5"
@@ -100,14 +100,17 @@ class RandomBytesTests(unittest.TestCase):
         nonce = b"\x42" * 12
 
         with patch(
-            "cryptocore.modes.gcm.generate_random_bytes",
+            "cryptocore.csprng.generate_random_bytes",
             return_value=nonce,
         ) as source:
-            encrypted = gcm_encrypt(b"message", KEY)
+            encrypted = GCM(KEY).encrypt(b"message")
 
         source.assert_called_once_with(12)
-        self.assertEqual(encrypted[4:16], nonce)
-
+        self.assertEqual(encrypted[:12], nonce)
+        self.assertEqual(
+            GCM(KEY).decrypt(encrypted),
+            b"message",
+        )
 
 class GeneratedKeyCLITests(unittest.TestCase):
     def setUp(self):

@@ -1,3 +1,4 @@
+test_default_output_path (test_aead.CLITests.test_default_output_path) ... ok
 test_generated_key (test_aead.CLITests.test_generated_key) ... ok
 test_invalid_options (test_aead.CLITests.test_invalid_options) ... ok
 test_success_and_wrong_aad (test_aead.CLITests.test_success_and_wrong_aad) ... ok
@@ -89,6 +90,6 @@ test_wrong_key (test_mac.MACCLITests.test_wrong_key) ... ok
 test_bounded_reads (test_mac.StreamingTests.test_bounded_reads) ... ok
 
 ----------------------------------------------------------------------
-Ran 89 tests in 24.863s
+Ran 90 tests in 22.749s
 
 OK

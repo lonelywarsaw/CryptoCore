@@ -15,8 +15,6 @@ from cryptocore.modes.cbc import decrypt as cbc_decrypt
 from cryptocore.modes.cbc import encrypt as cbc_encrypt
 from cryptocore.modes.ecb import decrypt as ecb_decrypt
 from cryptocore.modes.ecb import encrypt as ecb_encrypt
-from cryptocore.modes.gcm import decrypt as gcm_decrypt
-from cryptocore.modes.gcm import encrypt as gcm_encrypt
 from cryptocore.modes.streaming import cfb_decrypt
 from cryptocore.modes.streaming import cfb_encrypt
 from cryptocore.modes.streaming import ctr_crypt
@@ -24,7 +22,7 @@ from cryptocore.modes.streaming import ofb_crypt
 
 
 BLOCK_SIZE = 16
-MODES = ["ecb", "cbc", "cfb", "ofb", "ctr", "gcm"]
+MODES = ["ecb", "cbc", "cfb", "ofb", "ctr"]
 HEX_PATTERN = re.compile(r"[0-9a-fA-F]{32}\Z")
 
 
@@ -48,7 +46,12 @@ def parse_iv(value: str) -> bytes:
 def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="cryptocore",
-        description="Шифрование файлов с помощью AES-128.",
+        description=(
+            "Шифрование файлов AES-128. "
+            "Для GCM и ETM используйте --mode gcm или --mode etm. "
+            "Справка AEAD: cryptocore --mode gcm --help. "
+            "Хеширование и MAC: cryptocore dgst --help."
+        ),
     )
 
     parser.add_argument(
@@ -136,9 +139,6 @@ def encrypt_data(mode: str, data: bytes, key: bytes) -> bytes:
     if mode == "ecb":
         return ecb_encrypt(data, key)
 
-    if mode == "gcm":
-        return gcm_encrypt(data, key)
-
     iv = generate_random_bytes(BLOCK_SIZE)
 
     if mode == "cbc":
@@ -163,9 +163,6 @@ def decrypt_data(
 ) -> bytes:
     if mode == "ecb":
         return ecb_decrypt(data, key)
-
-    if mode == "gcm":
-        return gcm_decrypt(data, key)
 
     iv, ciphertext = get_iv_and_ciphertext(data, supplied_iv)
 
@@ -198,7 +195,7 @@ def encryption_main() -> int:
             "Параметр --iv нельзя указывать при шифровании."
         )
 
-    if args.mode in ("ecb", "gcm") and args.iv is not None:
+    if args.mode == "ecb" and args.iv is not None:
         parser.error(
             f"Параметр --iv нельзя использовать с режимом {args.mode}."
         )
