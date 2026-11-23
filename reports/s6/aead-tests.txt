@@ -6,6 +6,8 @@ test_aad_file (test_aead.FileTests.test_aad_file) ... ok
 test_csprng (test_aead.FileTests.test_csprng) ... ok
 test_distinct_derived_keys (test_aead.FileTests.test_distinct_derived_keys) ... ok
 test_empty_file (test_aead.FileTests.test_empty_file) ... ok
+test_etm_every_bit_tamper_preserves_output (test_aead.FileTests.test_etm_every_bit_tamper_preserves_output) ... ok
+test_etm_unique_nonces (test_aead.FileTests.test_etm_unique_nonces) ... ok
 test_external_nonce (test_aead.FileTests.test_external_nonce) ... ok
 test_round_trip (test_aead.FileTests.test_round_trip) ... ok
 test_same_path (test_aead.FileTests.test_same_path) ... ok
@@ -22,6 +24,6 @@ test_table_multiplication (test_aead.GCMTests.test_table_multiplication) ... ok
 test_unique_nonces (test_aead.GCMTests.test_unique_nonces) ... ok
 
 ----------------------------------------------------------------------
-Ran 22 tests in 5.859s
+Ran 24 tests in 17.346s
 
 OK

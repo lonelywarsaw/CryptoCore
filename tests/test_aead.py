@@ -344,17 +344,24 @@ class FileTests(unittest.TestCase):
                         )
 
     def test_csprng(self):
-        with patch(
-            "cryptocore.csprng.generate_random_bytes",
-            return_value=NONCE,
-        ) as source:
-            encrypt_file(self.source, self.encrypted, KEY)
+        for mode, key in (("gcm", KEY), ("etm", MASTER)):
+            with self.subTest(mode=mode):
+                with patch(
+                    "cryptocore.csprng.generate_random_bytes",
+                    return_value=NONCE,
+                ) as source:
+                    encrypt_file(
+                        self.source,
+                        self.encrypted,
+                        key,
+                        mode=mode,
+                    )
 
-        source.assert_called_once_with(12)
-        self.assertEqual(
-            self.encrypted.read_bytes()[:12],
-            NONCE,
-        )
+                source.assert_called_once_with(12)
+                self.assertEqual(
+                    self.encrypted.read_bytes()[:12],
+                    NONCE,
+                )
 
     def test_same_path(self):
         with self.assertRaises(ValueError):
@@ -366,6 +373,103 @@ class FileTests(unittest.TestCase):
         self.assertEqual(len(mac_key), 32)
         self.assertNotEqual(encryption_key, mac_key[:16])
 
+    def test_etm_every_bit_tamper_preserves_output(self):
+        self.source.write_bytes(b"Small message")
+        aad = b"header"
+
+        encrypt_file(
+            self.source,
+            self.encrypted,
+            MASTER,
+            mode="etm",
+            aad=aad,
+        )
+        original = self.encrypted.read_bytes()
+
+        self.assertEqual(
+            len(original),
+            12 + len(b"Small message") + 32,
+        )
+
+        for position in range(len(original)):
+            for bit in range(8):
+                with self.subTest(position=position, bit=bit):
+                    changed = bytearray(original)
+                    changed[position] ^= 1 << bit
+                    self.encrypted.write_bytes(changed)
+
+                    # При отказе новый выходной файл не создаётся.
+                    if self.output.exists():
+                        self.output.unlink()
+
+                    with self.assertRaises(AuthenticationError):
+                        decrypt_file(
+                            self.encrypted,
+                            self.output,
+                            MASTER,
+                            mode="etm",
+                            aad=aad,
+                        )
+
+                    self.assertFalse(self.output.exists())
+
+                    # Уже существующий файл остаётся неизменным.
+                    self.output.write_bytes(b"KEEP")
+
+                    with self.assertRaises(AuthenticationError):
+                        decrypt_file(
+                            self.encrypted,
+                            self.output,
+                            MASTER,
+                            mode="etm",
+                            aad=aad,
+                        )
+
+                    self.assertEqual(
+                        self.output.read_bytes(),
+                        b"KEEP",
+                    )
+
+        # Исходный контейнер по-прежнему расшифровывается.
+        self.encrypted.write_bytes(original)
+
+        decrypt_file(
+            self.encrypted,
+            self.output,
+            MASTER,
+            mode="etm",
+            aad=aad,
+        )
+
+        self.assertEqual(
+            self.output.read_bytes(),
+            self.source.read_bytes(),
+        )
+
+    def test_etm_unique_nonces(self):
+        self.source.write_bytes(b"")
+        nonces = set()
+
+        for index in range(1000):
+            encrypt_file(
+                self.source,
+                self.encrypted,
+                MASTER,
+                mode="etm",
+            )
+            encrypted = self.encrypted.read_bytes()
+
+            self.assertEqual(len(encrypted), 12 + 32)
+
+            nonce = encrypted[:12]
+            self.assertNotIn(
+                nonce,
+                nonces,
+                f"Повтор nonce на шифровании {index + 1}",
+            )
+            nonces.add(nonce)
+
+        self.assertEqual(len(nonces), 1000)
 
 class CLITests(unittest.TestCase):
     def setUp(self):

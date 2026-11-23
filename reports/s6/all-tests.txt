@@ -6,6 +6,8 @@ test_aad_file (test_aead.FileTests.test_aad_file) ... ok
 test_csprng (test_aead.FileTests.test_csprng) ... ok
 test_distinct_derived_keys (test_aead.FileTests.test_distinct_derived_keys) ... ok
 test_empty_file (test_aead.FileTests.test_empty_file) ... ok
+test_etm_every_bit_tamper_preserves_output (test_aead.FileTests.test_etm_every_bit_tamper_preserves_output) ... ok
+test_etm_unique_nonces (test_aead.FileTests.test_etm_unique_nonces) ... ok
 test_external_nonce (test_aead.FileTests.test_external_nonce) ... ok
 test_round_trip (test_aead.FileTests.test_round_trip) ... ok
 test_same_path (test_aead.FileTests.test_same_path) ... ok
@@ -90,6 +92,6 @@ test_wrong_key (test_mac.MACCLITests.test_wrong_key) ... ok
 test_bounded_reads (test_mac.StreamingTests.test_bounded_reads) ... ok
 
 ----------------------------------------------------------------------
-Ran 90 tests in 22.749s
+Ran 92 tests in 42.412s
 
 OK
